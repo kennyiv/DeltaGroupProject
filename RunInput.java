@@ -13,18 +13,20 @@ package vetclinic;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 public class RunInput {
     
     Database Database = new Database();
     String requestedField;
+    static Integer checkID;
     
-    public Integer checkSearch(String petName, String lastName){
+    public Integer checkSearch(String petName, String lastName, String operator){
         //check for a valid animal ID
-        Integer checkID = Database.searchPetName(petName, lastName);
+        //String checkPetName = petName;
+        //String checkLastName =  lastName;
+        //String checkOperator = operator;
+        checkID = Database.searchPetName(petName, lastName, operator);
         
         if (checkID.equals(0)){
             JOptionPane.showMessageDialog(null, "Animal not found", "Error",JOptionPane.WARNING_MESSAGE);
@@ -41,7 +43,7 @@ public class RunInput {
         Date durationTime;
         
         //First validate the animal ID
-        Integer checkID = Database.searchPetName(petName, lastName);
+        Integer checkID = Database.searchPetName(petName, lastName, "AND");
         if (checkID.equals(0)){
            JOptionPane.showMessageDialog(null, "Animal not found", "Error",JOptionPane.WARNING_MESSAGE);
            return false;
@@ -92,35 +94,82 @@ public class RunInput {
     }
     
     public String getAnimalInfo(Integer inputID, String fileField){
+        //Retrieve the specified field from the data base
         switch (fileField){
             case "animalName":
                 requestedField = Database.getAnimalName(inputID);
+                break;
             case "firstName":
                 requestedField = Database.getFirstName(inputID);
+                break;
             case "lastName":
                 requestedField = Database.getLastName(inputID);
+                break;
+            case "weight":
+                requestedField = Database.getWeight(inputID);
+                break;
+            case "gender":
+                requestedField = Database.getGender(inputID);
+                break;
             default:
                 
         }
         return requestedField;
     }
     
-    public Boolean checkClient(Integer checkAnimalID, String petName, String gender,
-                            String weight, String lastName, String firstName, 
-                            String[] medList, String[] shotList){
+    public Integer checkClient(Integer checkAnimalID, String petName, String gender,
+                            String weight, String lastName, String firstName){ 
+   
         
-        //If we had an animal ID wasn't passed pass to the database to add or retrieve the animalID
+        //If we didn't have an animal ID create one otherwise update the weight
         if (checkAnimalID.equals(0)){
             checkAnimalID = Database.postAnimal(petName, lastName, firstName, gender, weight);
+        } else {
+            Database.updateAnimal(checkAnimalID, weight);
         }
         
-        //Now that we have an ID then post the medications
-        Database.postMedication(checkAnimalID, medList);
+        return checkAnimalID;
+    }
+    
+    public String[][] updateShots(Integer animalID, String shot, String shotDate){
+        //Post my new shot then return my shot list
+        String[][] shotList = Database.postShots(animalID, shot, shotDate);
         
-        //Lastly post the shots
-        Database.postShots(checkAnimalID, shotList);
+        return shotList;
         
-        return true;
+    }
+    
+    public String[][] updateMedication(Integer animalID, String medication, String medicationInfo){
+        //Post the new medication then return back a list of known medications
+        String[][] medList = Database.postMedication(animalID, medication, medicationInfo );
+        
+        //return th medication list
+        return medList;
+    }
+    
+    public String[][] getShotList(Integer animalID){
+        //Go get the shot list from the database
+        String[][] shotList = Database.getShots(animalID);
+        
+        //return the shot list to the caller
+        return shotList;
+       
+    }
+    
+    public String[][] getMedList(Integer animalID){
+        //Go get the medication list from the database
+        String[][] medList = Database.getMeds(animalID);
+        
+        //return the medication list to the caller
+        return medList;
+    }
+    
+    public String[][] getApptList(Integer animalID){
+        //Go ge the appointment list from the database
+        String[][] apptList = Database.getAppt(animalID);
+        
+        //return the appointment list to the caller
+        return apptList;
     }
     
 }
