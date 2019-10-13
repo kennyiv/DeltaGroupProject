@@ -39,16 +39,56 @@ public class Database {
         }
     }
     
+    // Returns 1 on sucess or 0 on failure
     public Integer searchPetName(String animalName, String lastName, String operator){
-        return 1;
+        try {
+            String query;
+            if(operator.equals("and")) {
+                query = "SELECT client.client_lastname, pet.pet_name, pet.pet_gender, pet.pet_weight FROM pet INNER JOIN clientPet ON clientPet.pet_id = pet.pet_id INNER JOIN client ON clientPet.client_id = client.client_id WHERE pet.pet_name = \"" + animalName + "\" AND client.client_lastname = \"" + lastName +"\";";
+            } else if(operator.equals("or")) {
+                query = "SELECT client.client_lastname, pet.pet_name, pet.pet_gender, pet.pet_weight FROM pet INNER JOIN clientPet ON clientPet.pet_id = pet.pet_id INNER JOIN client ON clientPet.client_id = client.client_id WHERE pet.pet_name = \"" + animalName + "\" OR client.client_lastname = \"" + lastName +"\";";
+            } else {
+                // Error
+                return 0;
+            }
+            stmt.executeQuery(query);
+            return 1;
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        return 0;
     }
     
+    // Check availability, true if available, false otherwise
     public Boolean checkApptTime(Date checkDate, Date checkTime, Date durationTime){
-        return true;
+        try {
+            String query = "SELECT appointment_id FROM appointment WHERE appointment_date = '" + checkDate + "';";
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.getString("appointment_id") != null) {
+                return true;
+            } else {
+                return false;
+            }   
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        return false;
     }
     
-    public void loadAppointment(Integer animalID, Date apptDate, Date apptTime, String doctor, Integer duration){
-        
+    // Create an appointment, true if successful false otherwise
+    public Boolean loadAppointment(Integer animalID, Integer clientID, Date apptDate, Date apptTime, String doctor, Integer duration){
+        try {
+            String query = "INSERT INTO appointment (pet_id, client_id, doctor_name, appointment_date, appointment_time, appointment_duration) VALUES ('" + animalID + "', '" + clientID + " '" + doctor + "', '" + apptDate + "', '" + apptTime + "', '" + duration + "');";
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.getObject(1) == null) {
+                return false;
+            } else {
+                return true;
+            }   
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        return false;
     }
     
     public String getAnimalName(Integer animalID){
@@ -106,14 +146,43 @@ public class Database {
         return "error";
     }
     
-    public Integer postAnimal(String petName, String lastName, String firstName,
+    // Return true on success false otherwise
+    public Boolean postAnimal(String petName, String lastName, String firstName,
                               String Gender, String weight){
-        
-        return 1;
+        try {
+            String addClient = "INSERT INTO client (client_firstname, client_lastname) VALUES (\"" + firstName + "\", \"" + lastName + "\");";
+            stmt.executeQuery(addClient);
+            String addPet = "INSERT INTO pet (pet_name, pet_gender, pet_weight) (\"" + petName + "\", \"" + Gender + "\", \"" + weight +"\");";
+            stmt.executeQuery(addPet);
+            String addPetToClient = "SELECT client_id INTO @clientID FROM client WHERE client.client_lastname = \"" + lastName + "\" LIMIT 1;\n" 
+                                  + "SELECT pet_id INTO @petID FROM pet WHERE pet.pet_name = \"" + petName + "\" LIMIT 1;\n"
+                                  + "INSERT INTO clientPet (client_id, pet_id) VALUES (@clientID, @petID);";
+            ResultSet rs = stmt.executeQuery(addPetToClient);
+            if(rs.getObject(1) == null) {
+                return false;
+            } else {
+                return true;
+            }   
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        return false;
     }
     
-    public void updateAnimal(Integer animalID, String weight){
-        
+    // Return true on success false otherwise
+    public Boolean updateAnimal(Integer animalID, String weight){
+        try {
+            String query = "UPDATE pet SET pet_weight = " + weight + " WHERE pet_id = \""+ animalID +"\";";
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.getObject(1) == null) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        return false;
     }
     
     public String[][] postMedication(Integer animalID, String medication, String medicationInfo){
@@ -166,7 +235,7 @@ public class Database {
         */
         //Now return a list of all known shots
         String[][] shotData = { 
-            { "9-3-18", "Ok" },
+            { "9-3-18", "Rabies" },
             { "9-3-18", "Distemper" }
         }; 
         
