@@ -30,8 +30,8 @@ public class Database {
     private Connection conn = null;
     private Statement stmt = null;
     
-    private String[] shots;
     private String[][] shotList;
+    
     Database(){
         try {
             conn = DriverManager.getConnection("jdbc:mariadb://localhost:3306/" + db + "?user=" + user + "&password=" + password);
@@ -216,18 +216,23 @@ public class Database {
     
     public String[][] getShots(Integer animalID){
         
+        //Initialize the array
+        shotList = new String[50][2];
+        
         try {
             String query = "SELECT medication.medication_name, petmedication.petmedication_added FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
             ResultSet rs = stmt.executeQuery(query);
-            int i = 0;
+            int x = 0;
+            int y = 0;
             while(rs.next()) {
                 String medicationName = rs.getString("medication_name");
                 String date = rs.getString("petmedication_added");
-                shots[1] = medicationName;
-                shots[2] = date;
-                shotList[i] = shots;
+                y = 0;
+                shotList[x][y]= medicationName;
+                y++;
+                shotList[x][y] = date;
                 // now bump the counter and do it again
-                i++;
+                x++;
             }
         } catch (Exception e) {
             System.out.print("Could not get animalID: " + e);
