@@ -13,6 +13,11 @@
 		SELECT medication_id INTO @medicationID FROM medication WHERE medication.medication_name = "Chloramphenicol" LIMIT 1; 
 		SELECT pet_id INTO @petID FROM pet WHERE pet.pet_name = "PetName" LIMIT 1;
 	INSERT INTO petmedication (pet_id, medication_id) VALUES (@petID, @medicationID);
+	INSERT INTO shot (shot_name, shot_info) VALUES ("Rabies","Prevents/ treats rabies");
+	-- Assign shot to pet
+		SELECT shot_id INTO @shotID FROM shot WHERE shot.shot_name = "Rabies" LIMIT 1; 
+		SELECT pet_id INTO @petID FROM pet WHERE pet.pet_name = "PetName" LIMIT 1;
+	INSERT INTO petshot (pet_id, shot_id) VALUES (@petID, @shotID);
 	-- Create an appointment
 		SELECT pet_id INTO @petID FROM pet WHERE pet.pet_name = "PetName" LIMIT 1;
 		SELECT client_id INTO @clientID FROM client WHERE client.client_lastname = "Lastname" LIMIT 1;
@@ -36,6 +41,8 @@
 -- Client Card
 	-- Select all medication name, info for a pet
 	SELECT medication_name, medication_info FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_name = "PetName";
+	-- Select all shot name, info for a pet
+	SELECT shot_name, shot_info FROM shot INNER JOIN petshot ON shot.shot_id = petshot.shot_id INNER JOIN pet ON pet.pet_id = petshot.pet_id WHERE pet.pet_id = 1;
 	-- Select appointments for a pet
 	SELECT appointment_date, appointment_time, appointment_duration FROM appointment INNER JOIN pet ON pet.pet_id = appointment.pet_id WHERE pet.pet_name = "PetName";
 	-- Select appointments for a client

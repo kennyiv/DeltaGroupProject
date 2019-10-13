@@ -188,7 +188,7 @@ public class Database {
         }
         return false;
     }
-    //Post the new medication then return back a list of known medications
+    // Add a medication to the database, assign it to that pet, returns all medications for that pet
     public String[][] postMedication(Integer animalID, String medication, String medicationInfo){
         //Initialize the array
         medList = new String[50][2];
@@ -226,44 +226,68 @@ public class Database {
         return err;
     }
     
-    public String[][] postShots(Integer animalID, String shotList, String shotDate){
-        // Will need to implement arrayList
-        //Post my shot
-        
-        //Now return a list of all known shots
-        String[][] shotData = { 
-            { "9-3-18", "Rabies" },
-            { "9-3-18", "Distemper" }
-        }; 
-        
-        return shotData;
-        
-    }
-    
-    public String[][] getShots(Integer animalID){
-        /* Need to create shot db first
-        //Initialize the array
+    // Add a shot to the database, assign it to that pet, returns all shots for that pet
+    public String[][] postShots(Integer animalID, String shot, String shotInfo){
+         //Initialize the array
         shotList = new String[50][2];
         
         try {
-            String query = "SELECT medication.medication_name, petmedication.petmedication_added FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
-            ResultSet rs = stmt.executeQuery(query);
+            // Add the shot
+            String query = "INSERT INTO shot (shot_name, shot_info) VALUES (\""+ shot +"\",\""+ shotInfo +"\");";
+            stmt.executeQuery(query);
+            // Assign the shot
+            String query2 = "SELECT shot_id INTO @shotID FROM shot WHERE shot.shot_name = \""+ shot +"\" LIMIT 1;"
+                    + "INSERT INTO petshot (pet_id, shot_id) VALUES (\""+ animalID +"\", @shotID);";
+            stmt.executeQuery(query2);
+            // Get shots for that pet
+            String query3 = "SELECT shot_name, shot_info FROM shot INNER JOIN petshot ON shot.shot_id = petshot.shot_id INNER JOIN pet ON pet.pet_id = petshot.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
+            ResultSet rs = stmt.executeQuery(query3);
             int x = 0;
             int y = 0;
             while(rs.next()) {
-                String medicationName = rs.getString("medication_name");
-                String date = rs.getString("petmedication_added");
+                String shotName = rs.getString("shot_name");
+                String shotInfos = rs.getString("shot_info");
                 y = 0;
-                shotList[x][y]= medicationName;
+                shotList[x][y]= shotName;
                 y++;
-                shotList[x][y] = date;
+                shotList[x][y] = shotInfos;
                 // now bump the counter and do it again
                 x++;
             }
             return shotList;
         } catch (Exception e) {
             System.out.print("Could not get animalID: " + e);
-        }*/
+        }
+        String[][] err = { 
+            { "error", "error" }
+        };  
+        return err;
+    }
+    
+    // Returns all shots for a pet
+    public String[][] getShots(Integer animalID){
+        //Initialize the array
+        shotList = new String[50][2];
+        
+        try {
+            String query = "SELECT shot.shot_name, petShot.petShot_added FROM shot INNER JOIN petshot ON shot.shot_id = petshot.shot_id INNER JOIN pet ON pet.pet_id = petshot.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
+            ResultSet rs = stmt.executeQuery(query);
+            int x = 0;
+            int y = 0;
+            while(rs.next()) {
+                String shotName = rs.getString("shot_name");
+                String shotDate = rs.getString("petShot_added");
+                y = 0;
+                shotList[x][y]= shotName;
+                y++;
+                shotList[x][y] = shotDate;
+                // now bump the counter and do it again
+                x++;
+            }
+            return shotList;
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
         String[][] err = { 
             { "error", "error" }
         };  
@@ -271,12 +295,13 @@ public class Database {
         
     }
     
+    // Returns all meds for a pet
     public String[][] getMeds(Integer animalID){
          //Initialize the array
         medList = new String[50][2];
         
         try {
-            String query = "SELECT medication_name, medication_info FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
+            String query = "SELECT medication.medication_name, petMedication.petMedication_added FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
             ResultSet rs = stmt.executeQuery(query);
             int x = 0;
             int y = 0;
@@ -300,6 +325,7 @@ public class Database {
         return err; 
     }
     
+    // Returns all appointments for an client
     public String[][] getAppt(Integer clientID){
         //Initialize the array
         apptList = new String[50][3];

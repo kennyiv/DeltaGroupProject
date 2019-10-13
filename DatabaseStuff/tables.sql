@@ -35,7 +35,7 @@ CREATE TABLE medication (
 	CONSTRAINT medication_pk PRIMARY KEY (medication_id)
 );
 
--- Cross reference table for medicaitons to pets
+-- Cross reference table for medication to pets
 CREATE TABLE petMedication (
 	pet_id INT UNSIGNED NOT NULL,
 	medication_id INT UNSIGNED NOT NULL,
@@ -43,6 +43,24 @@ CREATE TABLE petMedication (
 	petMedication_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	CONSTRAINT petMedication_pet_fk FOREIGN KEY (pet_id) REFERENCES pet (pet_id) ON DELETE CASCADE ON UPDATE CASCADE,
 	CONSTRAINT petMedication_medication_fk FOREIGN KEY (medication_id) REFERENCES medication (medication_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- shot table
+CREATE TABLE shot (
+	shot_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+	shot_name VARCHAR(64) NOT NULL,
+	shot_info VARCHAR(512) NOT NULL,
+	CONSTRAINT shot_pk PRIMARY KEY (shot_id)
+);
+
+-- Cross reference table for shots to pets
+CREATE TABLE petShot (
+	pet_id INT UNSIGNED NOT NULL,
+	shot_id INT UNSIGNED NOT NULL,
+	petShot_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	petShot_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT petShot_pet_fk FOREIGN KEY (pet_id) REFERENCES pet (pet_id) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT petShot_shot_fk FOREIGN KEY (shot_id) REFERENCES shot (shot_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Appointment table; duration is in minutes
