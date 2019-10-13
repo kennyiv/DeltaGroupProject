@@ -31,6 +31,8 @@ public class Database {
     private Statement stmt = null;
     
     private String[][] shotList;
+    private String[][] apptList;
+    private String[][] medList;
     
     Database(){
         try {
@@ -186,18 +188,42 @@ public class Database {
         }
         return false;
     }
-    
+    //Post the new medication then return back a list of known medications
     public String[][] postMedication(Integer animalID, String medication, String medicationInfo){
-        // Will need to implement arrayList
-        //Post the new medication then return back a list of known medications
+        //Initialize the array
+        medList = new String[50][2];
         
-        String[][] medData = { 
-            { "Heartgard", "Once a month to prevent heartworm" },
-            { "Aspirin Powder", "Apple flavor" }
-        }; 
-        
-        return medData;
-        
+        try {
+            // Add the medication
+            String query = "INSERT INTO medication (medication_name, medication_info) VALUES (\""+ medication +"\",\""+ medicationInfo +"\");";
+            stmt.executeQuery(query);
+            // Assign the medication
+            String query2 = "SELECT medication_id INTO @medicationID FROM medication WHERE medication.medication_name = \""+ medication +"\" LIMIT 1;"
+                    + "INSERT INTO petmedication (pet_id, medication_id) VALUES (\""+ animalID +"\", @medicationID);";
+            stmt.executeQuery(query2);
+            // Get medication for that pet
+            String query3 = "SELECT medication_name, medication_info FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
+            ResultSet rs = stmt.executeQuery(query3);
+            int x = 0;
+            int y = 0;
+            while(rs.next()) {
+                String medName = rs.getString("medication_name");
+                String medInfo = rs.getString("medication_info");
+                y = 0;
+                medList[x][y]= medName;
+                y++;
+                medList[x][y] = medInfo;
+                // now bump the counter and do it again
+                x++;
+            }
+            return medList;
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        String[][] err = { 
+            { "error", "error", "error" }
+        };  
+        return err;
     }
     
     public String[][] postShots(Integer animalID, String shotList, String shotDate){
@@ -215,7 +241,7 @@ public class Database {
     }
     
     public String[][] getShots(Integer animalID){
-        
+        /* Need to create shot db first
         //Initialize the array
         shotList = new String[50][2];
         
@@ -234,41 +260,75 @@ public class Database {
                 // now bump the counter and do it again
                 x++;
             }
+            return shotList;
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }*/
+        String[][] err = { 
+            { "error", "error" }
+        };  
+        return err;
+        
+    }
+    
+    public String[][] getMeds(Integer animalID){
+         //Initialize the array
+        medList = new String[50][2];
+        
+        try {
+            String query = "SELECT medication_name, medication_info FROM medication INNER JOIN petmedication ON medication.medication_id = petmedication.medication_id INNER JOIN pet ON pet.pet_id = petmedication.pet_id WHERE pet.pet_id = \""+ animalID +"\";";
+            ResultSet rs = stmt.executeQuery(query);
+            int x = 0;
+            int y = 0;
+            while(rs.next()) {
+                String medicationName = rs.getString("medication_name");
+                String date = rs.getString("petmedication_added");
+                y = 0;
+                medList[x][y]= medicationName;
+                y++;
+                medList[x][y] = date;
+                // now bump the counter and do it again
+                x++;
+            }
+            return medList;
         } catch (Exception e) {
             System.out.print("Could not get animalID: " + e);
         }
         String[][] err = { 
             { "error", "error" }
         };  
+        return err; 
+    }
+    
+    public String[][] getAppt(Integer clientID){
+        //Initialize the array
+        apptList = new String[50][3];
+        
+        try {
+            String query = "SELECT appointment_date, appointment_time, appointment_duration FROM appointment INNER JOIN client ON client.client_id = appointment.client_id WHERE client.client_id = \""+ clientID +"\";";
+            ResultSet rs = stmt.executeQuery(query);
+            int x = 0;
+            int y = 0;
+            while(rs.next()) {
+                String apptDate = rs.getString("appointment_date");
+                String apptTime = rs.getString("appointment_time");
+                String apptDuration = rs.getString("appointment_duration");
+                y = 0;
+                apptList[x][y]= apptDate;
+                y++;
+                apptList[x][y] = apptTime;
+                y++;
+                apptList[x][y]= apptDuration;
+                // now bump the counter and do it again
+                x++;
+            }
+            return apptList;
+        } catch (Exception e) {
+            System.out.print("Could not get animalID: " + e);
+        }
+        String[][] err = { 
+            { "error", "error", "error" }
+        };  
         return err;
-
-        /*Now return a list of all known shots
-        String[][] shotData = { 
-            { "9-3-18", "Rabies" },
-            { "9-3-18", "Distemper" }
-        }; 
-        
-        return shotData; */
-    }
-    
-    public String[][] getMeds(Integer animalID){
-        // Will need to implement arrayList
-        String[][] medData = { 
-            { "Heartgard", "Once a month to prevent heartworm" },
-            { "Aspirin Powder", "Apple flavor" }
-        }; 
-        
-        return medData;
-        
-    }
-    
-    public String[][] getAppt(Integer animalID){
-        // Will need to implement arrayList
-        String[][] apptData = { 
-            { "9-3-19", "9:30am", "30" },
-            { "9-12-19", "10:00am", "15" }
-        };
-        
-        return apptData;
     }
 }
